@@ -328,6 +328,15 @@
             xl: { width: 1000, height: 700 }
         };
 
+        // Game constants
+        const GAME_CONSTANTS = {
+            WIN_LENGTH_DIFFERENCE: 20,  // Win condition: be 20+ segments longer
+            FOOD_TIMER_INTERVAL: 15000, // Add food every 15 seconds
+            COOP_ROUND_TIME: 60,        // 60 seconds for coop rounds
+            FOOD_SCORE: 10,             // Points for eating food
+            BITE_SCORE_MULTIPLIER: 5    // Points per segment when biting opponent
+        };
+
         // Game state
         let gameMode = 'single'; // 'single', 'two', or 'coop'
         let gameRunning = true;
@@ -338,7 +347,7 @@
 
         // Coop mode variables
         let coopTimer = null;
-        let coopTimeLeft = 60; // 60 seconds for coop rounds
+        let coopTimeLeft = GAME_CONSTANTS.COOP_ROUND_TIME;
         let coopPairsCollected = 0;
         let coopFoodPairs = []; // Array of food pairs that need to be collected together
 
@@ -436,7 +445,7 @@
                 clearInterval(foodTimer);
             }
             gameStartTime = Date.now();
-            foodTimer = setInterval(addFood, 15000); // Add food every 15 seconds
+            foodTimer = setInterval(addFood, GAME_CONSTANTS.FOOD_TIMER_INTERVAL);
         }
 
         // Stop food timer
@@ -654,7 +663,7 @@
                             otherPlayer.worm = otherPlayer.worm.slice(0, i);
 
                             // Current player grows by the number of eaten segments
-                            player.score += eatenSegments * 5;
+                            player.score += eatenSegments * GAME_CONSTANTS.BITE_SCORE_MULTIPLIER;
 
                             // Add eaten segments to current player
                             for (let j = 0; j < eatenSegments; j++) {
@@ -714,7 +723,7 @@
                 // Regular mode: check red food
                 for (let i = 0; i < food.length; i++) {
                     if (head.x === food[i].x && head.y === food[i].y) {
-                        player.score += 10;
+                        player.score += GAME_CONSTANTS.FOOD_SCORE;
                         food[i] = randomFood();
                         ateFood = true;
                         playSound('eat');
@@ -733,7 +742,7 @@
             if (coopTimer) {
                 clearInterval(coopTimer);
             }
-            coopTimeLeft = 60;
+            coopTimeLeft = GAME_CONSTANTS.COOP_ROUND_TIME;
             coopPairsCollected = 0;
             coopTimeElement.textContent = coopTimeLeft;
             coopPairsElement.textContent = coopPairsCollected;
@@ -807,27 +816,12 @@
 
                 // Check if one worm becomes significantly longer (optional win condition)
                 const lengthDifference = Math.abs(players[1].worm.length - players[2].worm.length);
-                if (lengthDifference >= 20) { // Win if 20+ segments longer
+                if (lengthDifference >= GAME_CONSTANTS.WIN_LENGTH_DIFFERENCE) {
                     if (players[1].worm.length > players[2].worm.length) {
                         gameOver('player1', 'length');
                     } else {
                         gameOver('player2', 'length');
                     }
-                }
-            } 
-             if (!players[1].alive) {
-                gameOver('player2');
-            } else if (!players[2].alive) {
-                gameOver('player1');
-            }
-
-            // Check if one worm becomes significantly longer (optional win condition)
-            const lengthDifference = Math.abs(players[1].worm.length - players[2].worm.length);
-            if (lengthDifference >= 20) { // Win if 20+ segments longer
-                if (players[1].worm.length > players[2].worm.length) {
-                    gameOver('player1', 'length');
-                } else {
-                    gameOver('player2', 'length');
                 }
             }
         }
@@ -1030,52 +1024,49 @@
         });
 
         // Game mode switching functions
-function switchToCoopPlayer() {
-gameMode = 'coop';
-coopPlayerBtn.classList.add('active');
-singlePlayerBtn.classList.remove('active');
-twoPlayerBtn.classList.remove('active');
-player2Info.style.display = 'none';
-coopInfo.style.display = 'block';
-singlePlayerControls.style.display = 'none';
-twoPlayerControls.style.display = 'none';
-document.getElementById('coopControls').style.display = 'block';
-restart();
-}
+        function switchToCoopPlayer() {
+            gameMode = 'coop';
+            coopPlayerBtn.classList.add('active');
+            singlePlayerBtn.classList.remove('active');
+            twoPlayerBtn.classList.remove('active');
+            player2Info.style.display = 'none';
+            coopInfo.style.display = 'block';
+            singlePlayerControls.style.display = 'none';
+            twoPlayerControls.style.display = 'none';
+            document.getElementById('coopControls').style.display = 'block';
+            restart();
+        }
 
-// Update existing mode switching functions
-function switchToSinglePlayer() {
-gameMode = 'single';
-singlePlayerBtn.classList.add('active');
-twoPlayerBtn.classList.remove('active');
-coopPlayerBtn.classList.remove('active');
-player2Info.style.display = 'none';
-coopInfo.style.display = 'none';
-singlePlayerControls.style.display = 'block';
-twoPlayerControls.style.display = 'none';
-document.getElementById('coopControls').style.display = 'none';
-restart();
-}
+        function switchToSinglePlayer() {
+            gameMode = 'single';
+            singlePlayerBtn.classList.add('active');
+            twoPlayerBtn.classList.remove('active');
+            coopPlayerBtn.classList.remove('active');
+            player2Info.style.display = 'none';
+            coopInfo.style.display = 'none';
+            singlePlayerControls.style.display = 'block';
+            twoPlayerControls.style.display = 'none';
+            document.getElementById('coopControls').style.display = 'none';
+            restart();
+        }
 
-function switchToTwoPlayer() {
-gameMode = 'two';
-twoPlayerBtn.classList.add('active');
-singlePlayerBtn.classList.remove('active');
-coopPlayerBtn.classList.remove('active');
-player2Info.style.display = 'block';
-coopInfo.style.display = 'none';
-singlePlayerControls.style.display = 'none';
-twoPlayerControls.style.display = 'block';
-document.getElementById('coopControls').style.display = 'none';
-restart();
-}
-
-// Add event listener for coop mode
-coopPlayerBtn.addEventListener('click', switchToCoopPlayer);            
+        function switchToTwoPlayer() {
+            gameMode = 'two';
+            twoPlayerBtn.classList.add('active');
+            singlePlayerBtn.classList.remove('active');
+            coopPlayerBtn.classList.remove('active');
+            player2Info.style.display = 'block';
+            coopInfo.style.display = 'none';
+            singlePlayerControls.style.display = 'none';
+            twoPlayerControls.style.display = 'block';
+            document.getElementById('coopControls').style.display = 'none';
+            restart();
+        }
 
         // Event listeners
         singlePlayerBtn.addEventListener('click', switchToSinglePlayer);
         twoPlayerBtn.addEventListener('click', switchToTwoPlayer);
+        coopPlayerBtn.addEventListener('click', switchToCoopPlayer);
         gameSpeedSelect.addEventListener('change', updateGameSpeed);
         boardSizeSelect.addEventListener('change', changeBoardSize);
 
