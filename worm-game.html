@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Worm Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #2c3e50;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #ecf0f1;
+            background-color: #34495e;
+        }
+
+        .score {
+            color: #ecf0f1;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .game-over {
+            color: #e74c3c;
+            font-size: 32px;
+            margin-top: 10px;
+        }
+
+        .controls {
+            color: #bdc3c7;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .customization {
+            margin-bottom: 15px;
+            color: #ecf0f1;
+        }
+
+        .customization label {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+
+        .customization select,
+        .customization input {
+            margin-left: 5px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            border: 1px solid #7f8c8d;
+            background-color: #34495e;
+            color: #ecf0f1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <div class="customization">
+            <label>Color:
+                <select id="wormColor">
+                    <option value="#2ecc71">Green</option>
+                    <option value="#3498db">Blue</option>
+                    <option value="#e74c3c">Red</option>
+                    <option value="#f39c12">Orange</option>
+                    <option value="#9b59b6">Purple</option>
+                    <option value="#1abc9c">Teal</option>
+                    <option value="#f1c40f">Yellow</option>
+                </select>
+            </label>
+            <label>Pattern:
+                <select id="wormPattern">
+                    <option value="solid">Solid</option>
+                    <option value="striped">Striped</option>
+                    <option value="gradient">Gradient</option>
+                    <option value="dotted">Dotted</option>
+                </select>
+            </label>
+            <label>Speed:
+                <select id="gameSpeed">
+                    <option value="150">Slow</option>
+                    <option value="100" selected>Normal</option>
+                    <option value="75">Fast</option>
+                    <option value="50">Very Fast</option>
+                </select>
+            </label>
+        </div>
+        <div class="score">Score: <span id="score">0</span></div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div class="game-over" id="gameOver" style="display: none;">Game Over! Press Space to restart</div>
+        <div class="controls">Use arrow keys to move • Space to restart</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const gameOverElement = document.getElementById('gameOver');
+        const wormColorSelect = document.getElementById('wormColor');
+        const wormPatternSelect = document.getElementById('wormPattern');
+        const gameSpeedSelect = document.getElementById('gameSpeed');
+
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+
+        let worm = [
+            { x: 10, y: 10 }
+        ];
+        let food = {};
+        let dx = 1;
+        let dy = 0;
+        let score = 0;
+        let gameRunning = true;
+        let gameInterval;
+        let inputBuffer = null;
+
+        // Generate random food position
+        function randomFood() {
+            food = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount)
+            };
+        }
+
+        // Draw worm segment with pattern
+        function drawWormSegment(x, y, segmentIndex) {
+            const color = wormColorSelect.value;
+            const pattern = wormPatternSelect.value;
+            const segX = x * gridSize;
+            const segY = y * gridSize;
+            const size = gridSize - 2;
+
+            switch (pattern) {
+                case 'solid':
+                    ctx.fillStyle = color;
+                    ctx.fillRect(segX, segY, size, size);
+                    break;
+
+                case 'striped':
+                    ctx.fillStyle = color;
+                    ctx.fillRect(segX, segY, size, size);
+                    ctx.fillStyle = '#34495e';
+                    for (let i = 0; i < size; i += 4) {
+                        ctx.fillRect(segX + i, segY, 2, size);
+                    }
+                    break;
+
+                case 'gradient':
+                    const gradient = ctx.createLinearGradient(segX, segY, segX + size, segY + size);
+                    gradient.addColorStop(0, color);
+                    gradient.addColorStop(1, '#34495e');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(segX, segY, size, size);
+                    break;
+
+                case 'dotted':
+                    ctx.fillStyle = color;
+                    ctx.fillRect(segX, segY, size, size);
+                    ctx.fillStyle = '#34495e';
+                    ctx.fillRect(segX + 4, segY + 4, size - 8, size - 8);
+                    break;
+            }
+        }
+
+        // Draw game elements
+        function drawGame() {
+            // Clear canvas
+            ctx.fillStyle = '#34495e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw worm with custom pattern
+            for (let i = 0; i < worm.length; i++) {
+                drawWormSegment(worm[i].x, worm[i].y, i);
+            }
+
+            // Draw food
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+        }
+
+        // Update game state
+        function update() {
+            if (!gameRunning) return;
+
+            // Process buffered input
+            if (inputBuffer) {
+                const { newDx, newDy } = inputBuffer;
+                dx = newDx;
+                dy = newDy;
+                inputBuffer = null;
+            }
+
+            const head = { x: worm[0].x + dx, y: worm[0].y + dy };
+
+            // Check wall collision
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                gameOver();
+                return;
+            }
+
+            // Check self collision
+            for (let segment of worm) {
+                if (head.x === segment.x && head.y === segment.y) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            worm.unshift(head);
+
+            // Check food collision
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                scoreElement.textContent = score;
+                randomFood();
+            } else {
+                worm.pop();
+            }
+        }
+
+        // Game over
+        function gameOver() {
+            gameRunning = false;
+            gameOverElement.style.display = 'block';
+        }
+
+        // Restart game
+        function restart() {
+            worm = [{ x: 10, y: 10 }];
+            dx = 1;
+            dy = 0;
+            score = 0;
+            scoreElement.textContent = score;
+            gameRunning = true;
+            gameOverElement.style.display = 'none';
+            randomFood();
+            updateGameSpeed();
+        }
+
+        // Update game speed
+        function updateGameSpeed() {
+            if (gameInterval) {
+                clearInterval(gameInterval);
+            }
+            const speed = parseInt(gameSpeedSelect.value);
+            gameInterval = setInterval(gameLoop, speed);
+        }
+
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning && e.code === 'Space') {
+                restart();
+                return;
+            }
+
+            if (!gameRunning || inputBuffer) return; // Ignore input if buffer is full
+
+            // Buffer the input to prevent race conditions
+            switch (e.code) {
+                case 'ArrowUp':
+                    if (dy !== 1) { inputBuffer = { newDx: 0, newDy: -1 }; }
+                    break;
+                case 'ArrowDown':
+                    if (dy !== -1) { inputBuffer = { newDx: 0, newDy: 1 }; }
+                    break;
+                case 'ArrowLeft':
+                    if (dx !== 1) { inputBuffer = { newDx: -1, newDy: 0 }; }
+                    break;
+                case 'ArrowRight':
+                    if (dx !== -1) { inputBuffer = { newDx: 1, newDy: 0 }; }
+                    break;
+            }
+        });
+
+        // Game loop
+        function gameLoop() {
+            update();
+            drawGame();
+        }
+
+        // Add event listeners for customization controls
+        gameSpeedSelect.addEventListener('change', updateGameSpeed);
+
+        // Initialize game
+        randomFood();
+        updateGameSpeed();
+    </script>
+</body>
+
+</html>
