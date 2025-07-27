@@ -323,6 +323,12 @@ function clearVirtualJoystick() {
 function setupVirtualJoystick() {
     // Touch start - establish the center point (anywhere on screen)
     document.addEventListener('touchstart', (e) => {
+        // Handle tap-to-start if waiting to start
+        if (window.currentMode && window.currentMode.waitingToStart) {
+            window.currentMode.startGame();
+            return;
+        }
+
         // Only activate virtual joystick when game is running
         if (!window.currentMode || !window.currentMode.gameRunning) {
             return;
@@ -348,6 +354,12 @@ function setupVirtualJoystick() {
 
     // Mouse support for desktop testing
     document.addEventListener('mousedown', (e) => {
+        // Handle click-to-start if waiting to start
+        if (window.currentMode && window.currentMode.waitingToStart) {
+            window.currentMode.startGame();
+            return;
+        }
+
         // Only activate virtual joystick when game is running
         if (!window.currentMode || !window.currentMode.gameRunning) {
             return;

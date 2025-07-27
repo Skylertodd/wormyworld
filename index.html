@@ -12,6 +12,7 @@
             <button id="singlePlayer" class="active">Single Player</button>
             <button id="twoPlayer">Two Player</button>
             <button id="coopPlayer">Co-op</button>
+            <button id="showLeaderboard" class="leaderboard-btn">🏆 Scores</button>
         </div>
 
         <div class="customization">
@@ -66,13 +67,16 @@
             </div>
         </div>
 
-        <!-- Leaderboard -->
+        <!-- Leaderboard Modal -->
         <div class="leaderboard" id="leaderboard">
-            <h3>🏆 Leaderboard</h3>
-            <div class="leaderboard-list" id="leaderboardList">
-                <!-- Scores will be populated here -->
+            <div class="leaderboard-content">
+                <button class="leaderboard-close" id="leaderboardClose">×</button>
+                <h3>🏆 Leaderboard</h3>
+                <div class="leaderboard-list" id="leaderboardList">
+                    <!-- Scores will be populated here -->
+                </div>
+                <button class="clear-scores-btn" id="clearScoresBtn">Clear Scores</button>
             </div>
-            <button class="clear-scores-btn" id="clearScoresBtn">Clear Scores</button>
         </div>
 
         <!-- Mobile Touch Controls -->

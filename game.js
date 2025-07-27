@@ -26,7 +26,7 @@ window.currentMode = null;
 
 // Leaderboard elements
 let highScoreModal, playerNameInput, saveScoreBtn, skipScoreBtn;
-let newHighScoreElement, leaderboardList, clearScoresBtn;
+let newHighScoreElement, leaderboardList, clearScoresBtn, leaderboardClose, showLeaderboardBtn;
 
 // Mode instances - will be initialized after DOM is ready
 let modes = {};
@@ -66,6 +66,9 @@ function changeBoardSize() {
     if (selectedSize === 'fullscreen') {
         gameContainer.classList.add('fullscreen');
 
+        // Force a layout update before calculating dimensions
+        gameContainer.offsetHeight;
+
         // Calculate available space for the canvas
         // Account for other elements (controls, scores, etc.)
         const otherElementsHeight = 220; // Approximate height of controls and info
@@ -85,8 +88,13 @@ function changeBoardSize() {
         canvas.height = size.height;
     }
 
+    // Update tile counts after canvas dimensions are set
     tileCountX = canvas.width / gridSize;
     tileCountY = canvas.height / gridSize;
+
+    // Force canvas to update its display size
+    canvas.style.width = canvas.width + 'px';
+    canvas.style.height = canvas.height + 'px';
 
     restart();
 }
@@ -99,6 +107,7 @@ function restart() {
         gameOverElement.style.display = 'none';
         hideLeaderboard(); // Hide leaderboard when game starts
         updateGameSpeed();
+        // Don't start food timer here - it will be started when game begins
     }
 }
 
@@ -132,10 +141,22 @@ function handleInput(direction, playerId = '1') {
 document.addEventListener('keydown', (e) => {
     initAudioOnInteraction();
 
-    if (!currentMode || !currentMode.gameRunning) {
-        if (e.code === 'Space' || e.code === 'Enter') {
+    // Handle space/enter for starting game or restarting
+    if (e.code === 'Space' || e.code === 'Enter') {
+        if (!currentMode) return;
+        
+        if (currentMode.waitingToStart) {
+            // Start the game if waiting
+            currentMode.startGame();
+        } else if (!currentMode.gameRunning) {
+            // Restart if game is over
             restart();
         }
+        return;
+    }
+
+    // Only process movement keys if game is running
+    if (!currentMode || !currentMode.gameRunning) {
         return;
     }
 
@@ -368,6 +389,8 @@ function initializeGame() {
     newHighScoreElement = document.getElementById('newHighScore');
     leaderboardList = document.getElementById('leaderboardList');
     clearScoresBtn = document.getElementById('clearScoresBtn');
+    leaderboardClose = document.getElementById('leaderboardClose');
+    showLeaderboardBtn = document.getElementById('showLeaderboard');
 
     // Initialize tile counts
     tileCountX = canvas.width / gridSize;
@@ -396,7 +419,13 @@ function initializeGame() {
 
     // Game over click/tap to restart
     gameOverElement.addEventListener('click', () => {
-        if (!currentMode || !currentMode.gameRunning) {
+        if (!currentMode) return;
+        
+        if (currentMode.waitingToStart) {
+            // Start the game if waiting
+            currentMode.startGame();
+        } else if (!currentMode.gameRunning) {
+            // Restart if game is over
             restart();
         }
     });
@@ -417,6 +446,29 @@ function initializeGame() {
 
     clearScoresBtn.addEventListener('click', clearHighScores);
 
+    // Leaderboard close button
+    leaderboardClose.addEventListener('click', hideLeaderboard);
+
+    // Show leaderboard button
+    showLeaderboardBtn.addEventListener('click', showLeaderboard);
+
+    // Close leaderboard when clicking outside the modal content
+    document.getElementById('leaderboard').addEventListener('click', (e) => {
+        if (e.target.id === 'leaderboard') {
+            hideLeaderboard();
+        }
+    });
+
+    // Handle escape key to close leaderboard
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const leaderboard = document.getElementById('leaderboard');
+            if (leaderboard.classList.contains('show')) {
+                hideLeaderboard();
+            }
+        }
+    });
+
     // Handle Enter key in name input
     playerNameInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
@@ -428,9 +480,13 @@ function initializeGame() {
 
     // Initialize leaderboard display
     updateLeaderboardDisplay();
-    showLeaderboard(); // Show leaderboard initially
+    // Don't show leaderboard initially - it's now a modal
 
     switchToSinglePlayer(); // Start with single player mode
+    
+    // Initialize board size after mode is set
+    changeBoardSize();
+    
     updateGameSpeed(); // Ensure game loop starts immediately
 }
 

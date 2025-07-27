@@ -4,12 +4,14 @@ class BaseGameMode {
         this.name = 'base';
         this.players = {};
         this.food = [];
-        this.gameRunning = true;
+        this.gameRunning = false; // Start in waiting state
+        this.waitingToStart = true; // New state for waiting to start
     }
 
     // Initialize the mode
     init() {
-        this.gameRunning = true; // Make sure game is running
+        this.gameRunning = false; // Start in waiting state
+        this.waitingToStart = true; // Wait for user input to start
         this.initPlayers();
         this.initFood();
     }
@@ -75,6 +77,16 @@ class BaseGameMode {
 
         this.updateUI();
         this.checkGameOver();
+    }
+
+    // Start the game (called when user presses space or taps)
+    startGame() {
+        if (this.waitingToStart) {
+            this.waitingToStart = false;
+            this.gameRunning = true;
+            startFoodTimer(); // Start the food timer when game begins
+            gameOverElement.style.display = 'none'; // Hide any start message
+        }
     }
 
     // Update individual player
@@ -213,6 +225,33 @@ class BaseGameMode {
 
         this.renderWorms();
         this.renderFood();
+
+        // Show start message if waiting to start
+        if (this.waitingToStart) {
+            this.renderStartMessage();
+        }
+    }
+
+    // Render start message
+    renderStartMessage() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+
+        const message = 'Press SPACE or TAP to Start';
+        const x = canvas.width / 2;
+        const y = canvas.height / 2;
+
+        // Add text shadow for better visibility
+        ctx.fillStyle = '#000000';
+        ctx.fillText(message, x + 2, y + 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(message, x, y);
+
+        ctx.textAlign = 'left'; // Reset text alignment
     }
 
     // Render worms
@@ -270,12 +309,12 @@ class BaseGameMode {
         this.gameRunning = false;
         stopFoodTimer();
         stopCoopTimer();
-        
+
         // Clear any active virtual joystick
         if (typeof clearVirtualJoystick === 'function') {
             clearVirtualJoystick();
         }
-        
+
         let message = 'Game Over! Tap to restart';
         playSound('gameOver');
 
@@ -300,6 +339,12 @@ class BaseGameMode {
 
     // Handle input
     handleInput(direction, playerId = '1') {
+        // If waiting to start, any input starts the game
+        if (this.waitingToStart) {
+            this.startGame();
+            return;
+        }
+
         const player = this.players[playerId];
         if (!player || !player.alive || player.inputBuffer) return;
 
@@ -335,5 +380,6 @@ class BaseGameMode {
     // Cleanup when switching modes
     cleanup() {
         this.gameRunning = false;
+        this.waitingToStart = false;
     }
 }
