@@ -271,6 +271,11 @@ class BaseGameMode {
         stopFoodTimer();
         stopCoopTimer();
         
+        // Clear any active virtual joystick
+        if (typeof clearVirtualJoystick === 'function') {
+            clearVirtualJoystick();
+        }
+        
         let message = 'Game Over! Tap to restart';
         playSound('gameOver');
 
