@@ -21,6 +21,9 @@ let currentMode = null;
 let gameInterval;
 let foodTimer = null;
 
+// Make currentMode accessible globally for mobile controls
+window.currentMode = null;
+
 // Leaderboard elements
 let highScoreModal, playerNameInput, saveScoreBtn, skipScoreBtn;
 let newHighScoreElement, leaderboardList, clearScoresBtn;
@@ -177,6 +180,7 @@ function switchToSinglePlayer() {
         currentMode.cleanup();
     }
     currentMode = modes.single;
+    window.currentMode = currentMode; // Update global reference
 
     singlePlayerBtn.classList.add('active');
     twoPlayerBtn.classList.remove('active');
@@ -196,6 +200,7 @@ function switchToTwoPlayer() {
         currentMode.cleanup();
     }
     currentMode = modes.two;
+    window.currentMode = currentMode; // Update global reference
 
     twoPlayerBtn.classList.add('active');
     singlePlayerBtn.classList.remove('active');
@@ -215,6 +220,7 @@ function switchToCoopPlayer() {
         currentMode.cleanup();
     }
     currentMode = modes.coop;
+    window.currentMode = currentMode; // Update global reference
 
     coopPlayerBtn.classList.add('active');
     singlePlayerBtn.classList.remove('active');

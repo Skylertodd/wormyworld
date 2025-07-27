@@ -161,6 +161,11 @@ function clearVirtualJoystick() {
 function setupVirtualJoystick() {
     // Touch start - establish the center point (anywhere on screen)
     document.addEventListener('touchstart', (e) => {
+        // Only activate virtual joystick when game is running
+        if (!window.currentMode || !window.currentMode.gameRunning) {
+            return;
+        }
+
         if (e.touches.length > 0) {
             const touch = e.touches[0];
             touchId = touch.identifier;
@@ -181,6 +186,11 @@ function setupVirtualJoystick() {
 
     // Mouse support for desktop testing
     document.addEventListener('mousedown', (e) => {
+        // Only activate virtual joystick when game is running
+        if (!window.currentMode || !window.currentMode.gameRunning) {
+            return;
+        }
+
         touchActive = true;
         touchStartX = e.clientX;
         touchStartY = e.clientY;
@@ -319,7 +329,7 @@ function setupVirtualJoystick() {
             if (lastDirection !== null) {
                 e.preventDefault();
             }
-            
+
             touchActive = false;
             touchId = null;
             lastDirection = null;
