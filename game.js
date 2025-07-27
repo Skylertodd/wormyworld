@@ -107,6 +107,12 @@ function restart() {
         gameOverElement.style.display = 'none';
         hideLeaderboard(); // Hide leaderboard when game starts
         updateGameSpeed();
+        
+        // Update customization button state
+        if (typeof wormCustomization !== 'undefined') {
+            wormCustomization.updateButtonState();
+        }
+        
         // Don't start food timer here - it will be started when game begins
     }
 }
@@ -213,6 +219,11 @@ function switchToSinglePlayer() {
     coopControls.style.display = 'none';
     document.getElementById('player2Controls').style.display = 'none';
 
+    // Show worm customization button
+    if (typeof wormCustomization !== 'undefined') {
+        wormCustomization.showCustomizationButton();
+    }
+
     restart();
 }
 
@@ -233,6 +244,11 @@ function switchToTwoPlayer() {
     coopControls.style.display = 'none';
     document.getElementById('player2Controls').style.display = 'block';
 
+    // Hide worm customization button
+    if (typeof wormCustomization !== 'undefined') {
+        wormCustomization.hideCustomizationButton();
+    }
+
     restart();
 }
 
@@ -252,6 +268,11 @@ function switchToCoopPlayer() {
     twoPlayerControls.style.display = 'none';
     coopControls.style.display = 'block';
     document.getElementById('player2Controls').style.display = 'block';
+
+    // Hide worm customization button
+    if (typeof wormCustomization !== 'undefined') {
+        wormCustomization.hideCustomizationButton();
+    }
 
     restart();
 }
@@ -473,6 +494,11 @@ function initializeGame() {
     // Initialize leaderboard display
     updateLeaderboardDisplay();
     // Don't show leaderboard initially - it's now a modal
+
+    // Initialize worm customization system
+    if (typeof wormCustomization !== 'undefined') {
+        wormCustomization.initializeUI();
+    }
 
     switchToSinglePlayer(); // Start with single player mode
     

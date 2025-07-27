@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Worm Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="game-container">
         <div class="game-mode">
@@ -13,6 +15,8 @@
             <button id="twoPlayer">Two Player</button>
             <button id="coopPlayer">Co-op</button>
             <button id="showLeaderboard" class="leaderboard-btn">🏆 Scores</button>
+            <div class="worm-customize-btn-container" id="wormCustomizeBtnContainer" style="display: none;">
+            <button id="openWormCustomization" class="customize-btn">🐛 Customize Worm</button> </div>
         </div>
 
         <div class="customization">
@@ -39,27 +43,36 @@
             </label>
         </div>
 
+        <!-- Worm Customization Button (only shown in single player) -->
+
+
+
+
         <div class="players-container">
             <div class="player-info">
-                <div class="player-score player1">Player 1: <span id="score1">0</span> | Length: <span id="length1">1</span></div>
+                <div class="player-score player1">Player 1: <span id="score1">0</span> | Length: <span
+                        id="length1">1</span></div>
             </div>
             <div class="player-info" id="player2Info" style="display: none;">
-                <div class="player-score player2">Player 2: <span id="score2">0</span> | Length: <span id="length2">1</span></div>
+                <div class="player-score player2">Player 2: <span id="score2">0</span> | Length: <span
+                        id="length2">1</span></div>
             </div>
             <div class="player-info" id="coopInfo" style="display: none;">
-                <div class="player-score">Pairs: <span id="coopPairs">0</span> | Time: <span id="coopTime">60</span>s</div>
+                <div class="player-score">Pairs: <span id="coopPairs">0</span> | Time: <span id="coopTime">60</span>s
+                </div>
             </div>
         </div>
 
         <canvas id="gameCanvas" width="400" height="300"></canvas>
         <div class="game-over" id="gameOver" style="display: none;">Game Over! Tap to restart</div>
-        
+
         <!-- High Score Entry Modal -->
         <div class="high-score-modal" id="highScoreModal" style="display: none;">
             <div class="modal-content">
                 <h3>New High Score!</h3>
                 <p>Score: <span id="newHighScore">0</span></p>
-                <input type="text" id="playerNameInput" maxlength="6" placeholder="Enter name (6 chars max)" autocomplete="off">
+                <input type="text" id="playerNameInput" maxlength="6" placeholder="Enter name (6 chars max)"
+                    autocomplete="off">
                 <div class="modal-buttons">
                     <button id="saveScoreBtn">Save Score</button>
                     <button id="skipScoreBtn">Skip</button>
@@ -78,6 +91,60 @@
             </div>
         </div>
 
+        <!-- Worm Customization Modal -->
+        <div class="worm-customization-modal" id="wormCustomizationModal" style="display: none;">
+            <div class="worm-customization-content">
+                <button class="worm-customization-close" id="wormCustomizationClose">×</button>
+                <h3>🐛 Customize Your Worm</h3>
+                <div class="customization-row">
+                    <label>Color:
+                        <select id="wormColor">
+                            <option value="#2ecc71">Green</option>
+                            <option value="#3498db">Blue</option>
+                            <option value="#e74c3c">Red</option>
+                            <option value="#f39c12">Orange</option>
+                            <option value="#9b59b6">Purple</option>
+                            <option value="#1abc9c">Teal</option>
+                            <option value="#f1c40f">Yellow</option>
+                            <option value="#e91e63">Pink</option>
+                        </select>
+                    </label>
+                    <label>Pattern:
+                        <select id="wormPattern">
+                            <option value="solid">Solid</option>
+                            <option value="stripes">Stripes</option>
+                            <option value="dots">Dots</option>
+                            <option value="gradient">Gradient</option>
+                        </select>
+                    </label>
+                    <label>Hat:
+                        <select id="wormHat">
+                            <option value="none">None</option>
+                            <option value="cap">Cap 🧢</option>
+                            <option value="crown">Crown 👑</option>
+                            <option value="tophat">Top Hat 🎩</option>
+                            <option value="party">Party Hat 🎉</option>
+                        </select>
+                    </label>
+                    <label>Glasses:
+                        <select id="wormGlasses">
+                            <option value="none">None</option>
+                            <option value="regular">Regular 👓</option>
+                            <option value="sunglasses">Sunglasses 🕶️</option>
+                            <option value="cool">Cool 😎</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="customization-preview">
+                    <canvas id="wormPreview" width="80" height="40"></canvas>
+                    <div class="customization-buttons">
+                        <button id="resetCustomization">Reset to Default</button>
+                        <button id="applyCustomization">Apply & Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Mobile Touch Controls -->
         <div class="mobile-controls" id="mobileControls">
             <div class="control-pad">
@@ -88,7 +155,7 @@
                 </div>
                 <button class="control-btn down" id="downBtn">↓</button>
             </div>
-            
+
             <div class="control-pad" id="player2Controls" style="display: none;">
                 <button class="control-btn up" id="upBtn2">↑</button>
                 <div class="control-row">
@@ -114,6 +181,7 @@
     </div>
 
     <script src="audio.js"></script>
+    <script src="worm-customization.js"></script>
     <script src="modes/base-mode.js"></script>
     <script src="modes/single-player-mode.js"></script>
     <script src="modes/two-player-mode.js"></script>
@@ -121,4 +189,5 @@
     <script src="game.js"></script>
     <script src="mobile.js"></script>
 </body>
+
 </html>

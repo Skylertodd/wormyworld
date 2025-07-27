@@ -6,13 +6,19 @@ class SinglePlayerMode extends BaseGameMode {
     }
 
     initPlayers() {
+        // Get customization if available
+        const customization = (typeof wormCustomization !== 'undefined') 
+            ? wormCustomization.getCustomization() 
+            : null;
+
         this.players = {
             1: {
                 worm: [{ x: 5, y: 10 }],
                 dx: 1,
                 dy: 0,
                 score: 0,
-                color: '#2ecc71',
+                color: customization ? customization.color : '#2ecc71',
+                customization: customization,
                 inputBuffer: null,
                 alive: true
             }
@@ -26,7 +32,7 @@ class SinglePlayerMode extends BaseGameMode {
 
         for (let i = 0; i < player.worm.length; i++) {
             const segment = player.worm[i];
-            this.drawWormSegment(segment.x, segment.y, player.color, i === 0);
+            this.drawWormSegment(segment.x, segment.y, player.color, i === 0, player.customization);
         }
     }
 

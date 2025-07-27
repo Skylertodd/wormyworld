@@ -86,6 +86,11 @@ class BaseGameMode {
             this.gameRunning = true;
             startFoodTimer(); // Start the food timer when game begins
             gameOverElement.style.display = 'none'; // Hide any start message
+            
+            // Update customization button state
+            if (typeof wormCustomization !== 'undefined') {
+                wormCustomization.updateButtonState();
+            }
         }
     }
 
@@ -276,18 +281,24 @@ class BaseGameMode {
     }
 
     // Draw worm segment
-    drawWormSegment(x, y, color, isHead = false) {
+    drawWormSegment(x, y, color, isHead = false, customization = null) {
         const segX = x * gridSize;
         const segY = y * gridSize;
         const size = gridSize - 2;
 
-        ctx.fillStyle = color;
-        ctx.fillRect(segX, segY, size, size);
+        // Use customization if available (single player mode)
+        if (customization && typeof wormCustomization !== 'undefined') {
+            wormCustomization.drawCustomWormSegment(ctx, segX, segY, size, customization, isHead);
+        } else {
+            // Default rendering for other modes
+            ctx.fillStyle = color;
+            ctx.fillRect(segX, segY, size, size);
 
-        if (isHead) {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(segX + 3, segY + 3, 3, 3);
-            ctx.fillRect(segX + size - 6, segY + 3, 3, 3);
+            if (isHead) {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(segX + 3, segY + 3, 3, 3);
+                ctx.fillRect(segX + size - 6, segY + 3, 3, 3);
+            }
         }
     }
 
@@ -317,6 +328,11 @@ class BaseGameMode {
 
         let message = 'Game Over! Tap to restart';
         playSound('gameOver');
+
+        // Update customization button state
+        if (typeof wormCustomization !== 'undefined') {
+            wormCustomization.updateButtonState();
+        }
 
         // Show leaderboard when game ends
         setTimeout(() => {
