@@ -151,13 +151,13 @@ class WormCustomization {
         if (isHead) {
             // Draw eyes
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(x + 3, y + 3, 3, 3);
-            ctx.fillRect(x + size - 6, y + 3, 3, 3);
+            ctx.fillRect(x + 4, y + 4, 4, 4);
+            ctx.fillRect(x + size - 8, y + 4, 4, 4);
 
             // Draw pupils
             ctx.fillStyle = '#000000';
-            ctx.fillRect(x + 4, y + 4, 1, 1);
-            ctx.fillRect(x + size - 5, y + 4, 1, 1);
+            ctx.fillRect(x + 5, y + 5, 2, 2);
+            ctx.fillRect(x + size - 7, y + 5, 2, 2);
 
             // Draw accessories
             this.drawHat(ctx, x, y, size, hat);
