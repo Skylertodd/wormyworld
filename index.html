@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Worm Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-mode">
+            <button id="singlePlayer" class="active">Single Player</button>
+            <button id="twoPlayer">Two Player</button>
+            <button id="coopPlayer">Co-op</button>
+        </div>
+
+        <div class="customization">
+            <label>Board Size:
+                <select id="boardSize">
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large">Large</option>
+                    <option value="fullscreen" selected>Fit to Screen</option>
+                </select>
+            </label>
+            <label>Difficulty:
+                <select id="difficulty">
+                    <option value="easy">Easy</option>
+                    <option value="normal" selected>Normal</option>
+                </select>
+            </label>
+            <label>Speed:
+                <select id="gameSpeed">
+                    <option value="150">Slow</option>
+                    <option value="100" selected>Normal</option>
+                    <option value="75">Fast</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="players-container">
+            <div class="player-info">
+                <div class="player-score player1">Player 1: <span id="score1">0</span> | Length: <span id="length1">1</span></div>
+            </div>
+            <div class="player-info" id="player2Info" style="display: none;">
+                <div class="player-score player2">Player 2: <span id="score2">0</span> | Length: <span id="length2">1</span></div>
+            </div>
+            <div class="player-info" id="coopInfo" style="display: none;">
+                <div class="player-score">Pairs: <span id="coopPairs">0</span> | Time: <span id="coopTime">60</span>s</div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="400" height="300"></canvas>
+        <div class="game-over" id="gameOver" style="display: none;">Game Over! Tap to restart</div>
+        
+        <!-- High Score Entry Modal -->
+        <div class="high-score-modal" id="highScoreModal" style="display: none;">
+            <div class="modal-content">
+                <h3>New High Score!</h3>
+                <p>Score: <span id="newHighScore">0</span></p>
+                <input type="text" id="playerNameInput" maxlength="6" placeholder="Enter name (6 chars max)" autocomplete="off">
+                <div class="modal-buttons">
+                    <button id="saveScoreBtn">Save Score</button>
+                    <button id="skipScoreBtn">Skip</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="leaderboard" id="leaderboard">
+            <h3>🏆 Leaderboard</h3>
+            <div class="leaderboard-list" id="leaderboardList">
+                <!-- Scores will be populated here -->
+            </div>
+            <button class="clear-scores-btn" id="clearScoresBtn">Clear Scores</button>
+        </div>
+
+        <!-- Mobile Touch Controls -->
+        <div class="mobile-controls" id="mobileControls">
+            <div class="control-pad">
+                <button class="control-btn up" id="upBtn">↑</button>
+                <div class="control-row">
+                    <button class="control-btn left" id="leftBtn">←</button>
+                    <button class="control-btn right" id="rightBtn">→</button>
+                </div>
+                <button class="control-btn down" id="downBtn">↓</button>
+            </div>
+            
+            <div class="control-pad" id="player2Controls" style="display: none;">
+                <button class="control-btn up" id="upBtn2">↑</button>
+                <div class="control-row">
+                    <button class="control-btn left" id="leftBtn2">←</button>
+                    <button class="control-btn right" id="rightBtn2">→</button>
+                </div>
+                <button class="control-btn down" id="downBtn2">↓</button>
+            </div>
+        </div>
+
+        <div class="controls-info">
+            <div id="singlePlayerControls">
+                <strong>Goal:</strong> Eat food to grow and survive<br>
+                <strong>Easy Mode:</strong> Pass through yourself, auto-turns at walls
+            </div>
+            <div id="twoPlayerControls" style="display: none;">
+                <strong>Strategic Rules:</strong> Bite tails strategically - don't bite off more than you can chew!
+            </div>
+            <div id="coopControls" style="display: none;">
+                <strong>Cooperative Rules:</strong> Collect matching colored food pairs together within 60 seconds!
+            </div>
+        </div>
+    </div>
+
+    <script src="audio.js"></script>
+    <script src="modes/base-mode.js"></script>
+    <script src="modes/single-player-mode.js"></script>
+    <script src="modes/two-player-mode.js"></script>
+    <script src="modes/coop-mode.js"></script>
+    <script src="game.js"></script>
+    <script src="mobile.js"></script>
+</body>
+</html>
