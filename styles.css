@@ -101,8 +101,13 @@ body {
     font-weight: bold;
 }
 
-.player1 { color: #2ecc71; }
-.player2 { color: #3498db; }
+.player1 {
+    color: #2ecc71;
+}
+
+.player2 {
+    color: #3498db;
+}
 
 /* Canvas */
 canvas {
@@ -118,13 +123,23 @@ canvas {
 /* Game over */
 .game-over {
     color: #e74c3c;
-    font-size: 18px;
+    font-size: 14px;
     font-weight: bold;
-    margin-top: 15px;
-    padding: 10px;
+    margin-top: 10px;
+    padding: 8px 12px;
     background-color: rgba(231, 76, 60, 0.1);
-    border-radius: 8px;
-    border: 2px solid #e74c3c;
+    border-radius: 6px;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.game-over:hover {
+    background-color: rgba(231, 76, 60, 0.2);
+    border-color: rgba(231, 76, 60, 0.5);
 }
 
 /* Mobile Controls */
@@ -285,7 +300,8 @@ canvas {
     max-width: 400px;
     margin-left: auto;
     margin-right: auto;
-    display: none; /* Hidden by default */
+    display: none;
+    /* Hidden by default */
 }
 
 .leaderboard.show {
@@ -395,55 +411,55 @@ canvas {
     body {
         padding: 5px;
     }
-    
+
     .game-container {
         width: 100%;
     }
-    
+
     .customization {
         gap: 10px;
     }
-    
+
     .customization label {
         font-size: 11px;
     }
-    
+
     .mobile-controls {
         display: flex;
     }
-    
+
     .player-score {
         font-size: 12px;
     }
-    
+
     .game-over {
         font-size: 16px;
-     
+
     }
-    
+
     canvas {
         width: 100%;
         max-width: 350px;
     }
-    
+
     .modal-content {
         width: 280px;
         padding: 20px;
     }
-    
+
     .modal-content h3 {
         font-size: 18px;
     }
-    
+
     .leaderboard {
         margin-top: 15px;
         padding: 12px;
     }
-    
+
     .leaderboard h3 {
         font-size: 16px;
     }
-    
+
     .leaderboard-entry {
         font-size: 13px;
         padding: 6px 10px;
@@ -454,34 +470,34 @@ canvas {
     .game-mode {
         gap: 3px;
     }
-    
+
     .game-mode button {
         padding: 6px 8px;
         font-size: 12px;
         min-width: 70px;
     }
-    
+
     .customization {
         flex-direction: column;
         gap: 8px;
     }
-    
+
     .customization label {
         flex-direction: row;
         gap: 8px;
     }
-    
+
     .players-container {
         flex-direction: column;
         gap: 5px;
     }
-    
+
     .control-btn {
         width: 45px;
         height: 45px;
         font-size: 18px;
     }
-    
+
     canvas {
         max-width: 300px;
     }
@@ -493,15 +509,15 @@ canvas {
         align-items: flex-start;
         padding-top: 10px;
     }
-    
+
     .game-container {
         margin-top: 0;
     }
-    
+
     .mobile-controls {
         margin-top: 10px;
     }
-    
+
     .controls-info {
         margin-top: 10px;
         font-size: 10px;
