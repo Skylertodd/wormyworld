@@ -260,6 +260,9 @@ function setupVirtualJoystick() {
     document.addEventListener('touchmove', (e) => {
         if (!touchActive) return;
 
+        // Always prevent default when virtual joystick is active to stop page scrolling
+        e.preventDefault();
+
         // Find the touch that matches our touchId
         let currentTouch = null;
         for (let i = 0; i < e.touches.length; i++) {
@@ -278,11 +281,6 @@ function setupVirtualJoystick() {
         const deltaX = currentTouchX - touchStartX;
         const deltaY = currentTouchY - touchStartY;
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-        // Only prevent default if we're actually dragging (moved enough distance)
-        if (distance >= MIN_DRAG_DISTANCE) {
-            e.preventDefault();
-        }
 
         // Update visual indicator
         updateVisualIndicator(touchStartX, touchStartY, currentTouchX, currentTouchY);
