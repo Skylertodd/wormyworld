@@ -12,9 +12,13 @@ let touchId = null;
 let visualIndicator = null;
 let startDot = null;
 let directionArrow = null;
+let glowZones = null;
 
 // Minimum distance to register a direction change
 const MIN_DRAG_DISTANCE = 15;
+
+// Snap-to-direction threshold (degrees from cardinal directions)
+const SNAP_THRESHOLD = 45;
 
 // Detect mobile device
 function isMobileDevice() {
@@ -56,6 +60,84 @@ function createVisualIndicator() {
         display: none;
     `;
 
+    // Create glow zones container
+    glowZones = document.createElement('div');
+    glowZones.style.cssText = `
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        transform: translate(-50%, -50%);
+    `;
+
+    // Create directional glow arcs (120 degree spans)
+    const directions = [
+        { name: 'up', color: 'rgba(255, 255, 100, 0.4)', startAngle: -60, endAngle: 60 },
+        { name: 'right', color: 'rgba(255, 100, 100, 0.4)', startAngle: 30, endAngle: 150 },
+        { name: 'down', color: 'rgba(100, 100, 255, 0.4)', startAngle: 120, endAngle: 240 },
+        { name: 'left', color: 'rgba(100, 255, 100, 0.4)', startAngle: 210, endAngle: 330 }
+    ];
+
+    directions.forEach(dir => {
+        const arcContainer = document.createElement('div');
+        arcContainer.className = `glow-zone-${dir.name}`;
+        arcContainer.style.cssText = `
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            left: 100px;
+            top: 100px;
+        `;
+
+        // Create multiple layers for a smoother circular arc effect
+        for (let i = 0; i < 3; i++) {
+            const arc = document.createElement('div');
+            const size = 120 - (i * 15); // Decreasing sizes: 120px, 105px, 90px
+            const opacity = 0.4 - (i * 0.1); // Decreasing opacity for layering effect
+
+            arc.style.cssText = `
+                position: absolute;
+                width: ${size}px;
+                height: ${size}px;
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                left: 50%;
+                top: 50%;
+            `;
+
+            // Create the arc using conic-gradient
+            const startAngle = dir.startAngle;
+            const endAngle = dir.endAngle;
+            const arcSpan = endAngle - startAngle;
+
+            // Create a radial gradient that fades from center outward with circular edge
+            const radialGradient = `radial-gradient(circle, ${dir.color.replace('0.4', opacity.toString())} 20%, ${dir.color.replace('0.4', (opacity * 0.6).toString())} 50%, ${dir.color.replace('0.4', (opacity * 0.3).toString())} 80%, transparent 100%)`;
+
+            // Create a conic gradient for the arc shape
+            const conicGradient = `conic-gradient(from ${startAngle}deg, transparent 0deg, white 10deg, white ${arcSpan - 10}deg, transparent ${arcSpan}deg)`;
+
+            // Apply the radial gradient as background and conic as mask for circular edges
+            arc.style.background = radialGradient;
+            arc.style.mask = conicGradient;
+            arc.style.webkitMask = conicGradient;
+
+            if (i === 0) {
+                // Add blur and shadow only to the outermost layer
+                arc.style.filter = 'blur(4px)';
+                arc.style.boxShadow = `0 0 25px ${dir.color}`;
+            } else {
+                arc.style.filter = `blur(${2 + i}px)`;
+            }
+
+            arcContainer.appendChild(arc);
+        }
+
+        glowZones.appendChild(arcContainer);
+    });
+
     // Create start dot
     startDot = document.createElement('div');
     startDot.style.cssText = `
@@ -75,11 +157,11 @@ function createVisualIndicator() {
     directionArrow.style.cssText = `
         position: absolute;
         width: 0;
-        height: 3px;
-        background: linear-gradient(90deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2));
+        height: 4px;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
         transform-origin: left center;
         filter: blur(0.5px);
-        box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
         border-radius: 2px;
     `;
 
@@ -87,17 +169,18 @@ function createVisualIndicator() {
     const arrowHead = document.createElement('div');
     arrowHead.style.cssText = `
         position: absolute;
-        right: -8px;
-        top: -4px;
+        right: -10px;
+        top: -5px;
         width: 0;
         height: 0;
-        border-left: 8px solid rgba(255, 255, 255, 0.6);
-        border-top: 5px solid transparent;
-        border-bottom: 5px solid transparent;
+        border-left: 10px solid rgba(255, 255, 255, 0.8);
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
         filter: blur(0.5px);
     `;
     directionArrow.appendChild(arrowHead);
 
+    visualIndicator.appendChild(glowZones);
     visualIndicator.appendChild(startDot);
     visualIndicator.appendChild(directionArrow);
     document.body.appendChild(visualIndicator);
@@ -113,6 +196,13 @@ function showVisualIndicator(startX, startY) {
     directionArrow.style.left = startX + 'px';
     directionArrow.style.top = startY + 'px';
     directionArrow.style.width = '0px';
+
+    // Position glow zones around the start point
+    glowZones.style.left = startX + 'px';
+    glowZones.style.top = startY + 'px';
+
+    // Reset all glow zones
+    resetGlowZones();
 }
 
 // Update visual indicator
@@ -125,27 +215,99 @@ function updateVisualIndicator(startX, startY, currentX, currentY) {
 
     if (distance < MIN_DRAG_DISTANCE) {
         directionArrow.style.width = '0px';
+        resetGlowZones();
         return;
     }
 
-    // Calculate angle and length
-    const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
-    const length = Math.min(distance, 100); // Cap the arrow length
+    // Get snapped direction and angle
+    const snapped = snapToCardinalDirection(deltaX, deltaY);
+    const length = Math.min(distance, 80); // Cap the arrow length
 
-    // Update arrow
+    // Update arrow with snapped angle
     directionArrow.style.width = length + 'px';
-    directionArrow.style.transform = `rotate(${angle}deg)`;
+    directionArrow.style.transform = `rotate(${snapped.snappedAngle}deg)`;
 
     // Update opacity based on distance
-    const opacity = Math.min(distance / 50, 0.8);
+    const opacity = Math.min(distance / 50, 0.9);
     directionArrow.style.opacity = opacity;
     startDot.style.opacity = opacity;
+
+    // Activate the corresponding glow zone
+    activateGlowZone(snapped.direction);
+}
+
+// Reset all glow zones
+function resetGlowZones() {
+    if (!glowZones) return;
+
+    const zones = glowZones.querySelectorAll('[class^="glow-zone-"]');
+    zones.forEach(zone => {
+        zone.style.opacity = '0';
+        zone.style.transform = 'translate(-50%, -50%) scale(1)';
+    });
+}
+
+// Activate specific glow zone
+function activateGlowZone(direction) {
+    if (!glowZones) return;
+
+    resetGlowZones();
+    const zone = glowZones.querySelector(`.glow-zone-${direction}`);
+    if (zone) {
+        zone.style.opacity = '0.9';
+        // Add a subtle pulsing effect
+        zone.style.transform = 'translate(-50%, -50%) scale(1.1)';
+        zone.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+    }
+}
+
+// Snap angle to nearest cardinal direction
+function snapToCardinalDirection(deltaX, deltaY) {
+    const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+
+    // Normalize angle to 0-360
+    const normalizedAngle = ((angle + 360) % 360);
+
+    // Define cardinal directions with snap zones
+    const cardinals = [
+        { direction: 'right', angle: 0, min: 315, max: 45 },
+        { direction: 'down', angle: 90, min: 45, max: 135 },
+        { direction: 'left', angle: 180, min: 135, max: 225 },
+        { direction: 'up', angle: 270, min: 225, max: 315 }
+    ];
+
+    // Find which cardinal direction we're closest to
+    for (const cardinal of cardinals) {
+        if (cardinal.min > cardinal.max) {
+            // Handle wrap-around case (right direction)
+            if (normalizedAngle >= cardinal.min || normalizedAngle <= cardinal.max) {
+                return {
+                    direction: cardinal.direction,
+                    snappedAngle: cardinal.angle
+                };
+            }
+        } else {
+            if (normalizedAngle >= cardinal.min && normalizedAngle <= cardinal.max) {
+                return {
+                    direction: cardinal.direction,
+                    snappedAngle: cardinal.angle
+                };
+            }
+        }
+    }
+
+    // Fallback (shouldn't happen)
+    return {
+        direction: 'right',
+        snappedAngle: 0
+    };
 }
 
 // Hide visual indicator
 function hideVisualIndicator() {
     if (visualIndicator) {
         visualIndicator.style.display = 'none';
+        resetGlowZones();
     }
 }
 
@@ -223,16 +385,9 @@ function setupVirtualJoystick() {
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
         if (distance < MIN_DRAG_DISTANCE) return;
 
-        // Determine the primary direction
-        let newDirection = null;
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            // Horizontal movement is stronger
-            newDirection = deltaX > 0 ? 'right' : 'left';
-        } else {
-            // Vertical movement is stronger
-            // Note: In screen coordinates, Y increases downward
-            newDirection = deltaY > 0 ? 'down' : 'up';
-        }
+        // Use snap-to-direction logic
+        const snapped = snapToCardinalDirection(deltaX, deltaY);
+        const newDirection = snapped.direction;
 
         // Only send input if direction changed
         if (newDirection !== lastDirection) {
@@ -288,16 +443,9 @@ function setupVirtualJoystick() {
         // Check if we've moved far enough to register a direction
         if (distance < MIN_DRAG_DISTANCE) return;
 
-        // Determine the primary direction
-        let newDirection = null;
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            // Horizontal movement is stronger
-            newDirection = deltaX > 0 ? 'right' : 'left';
-        } else {
-            // Vertical movement is stronger
-            // Note: In screen coordinates, Y increases downward
-            newDirection = deltaY > 0 ? 'down' : 'up';
-        }
+        // Use snap-to-direction logic
+        const snapped = snapToCardinalDirection(deltaX, deltaY);
+        const newDirection = snapped.direction;
 
         // Only send input if direction changed
         if (newDirection !== lastDirection) {
