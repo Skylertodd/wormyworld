@@ -142,50 +142,9 @@ canvas {
     border-color: rgba(231, 76, 60, 0.5);
 }
 
-/* Mobile Controls */
+/* Mobile Controls - Hidden since we use virtual joystick */
 .mobile-controls {
-    display: none;
-    justify-content: space-around;
-    margin-top: 20px;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.control-pad {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-}
-
-.control-row {
-    display: flex;
-    gap: 5px;
-}
-
-.control-btn {
-    width: 50px;
-    height: 50px;
-    border: 2px solid #7f8c8d;
-    border-radius: 8px;
-    background-color: #34495e;
-    color: #ecf0f1;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.1s;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-}
-
-.control-btn:active {
-    background-color: #2ecc71;
-    transform: scale(0.95);
-}
-
-.control-btn:hover {
-    background-color: #3498db;
+    display: none !important;
 }
 
 /* Controls info */

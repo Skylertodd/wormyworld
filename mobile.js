@@ -1,185 +1,152 @@
-// Mobile touch controls - will be initialized after DOM is ready
-let mobileControls, upBtn, downBtn, leftBtn, rightBtn;
-let upBtn2, downBtn2, leftBtn2, rightBtn2, canvas;
+// Virtual joystick controls - will be initialized after DOM is ready
+let gameContainer;
+let touchActive = false;
+let touchStartX = 0;
+let touchStartY = 0;
+let currentTouchX = 0;
+let currentTouchY = 0;
+let lastDirection = null;
+let touchId = null;
+
+// Minimum distance to register a direction change
+const MIN_DRAG_DISTANCE = 15;
 
 // Detect mobile device
 function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-           (window.innerWidth <= 768);
+        (window.innerWidth <= 768);
 }
 
-// Initialize mobile controls
+// Initialize virtual joystick controls
 function initializeMobileControls() {
     // Get DOM elements
-    mobileControls = document.getElementById('mobileControls');
-    upBtn = document.getElementById('upBtn');
-    downBtn = document.getElementById('downBtn');
-    leftBtn = document.getElementById('leftBtn');
-    rightBtn = document.getElementById('rightBtn');
-    upBtn2 = document.getElementById('upBtn2');
-    downBtn2 = document.getElementById('downBtn2');
-    leftBtn2 = document.getElementById('leftBtn2');
-    rightBtn2 = document.getElementById('rightBtn2');
     canvas = document.getElementById('gameCanvas');
+    gameContainer = document.querySelector('.game-container');
 
-    // Show/hide mobile controls based on device
-    updateMobileControls();
+    // Hide the old button controls on mobile
+    const mobileControls = document.getElementById('mobileControls');
+    if (mobileControls && isMobileDevice()) {
+        mobileControls.style.display = 'none';
+    }
 
-    // Touch control handlers for Player 1
-    upBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleInput('up', '1');
-    });
+    // Set up virtual joystick touch events
+    setupVirtualJoystick();
+}
 
-    downBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleInput('down', '1');
-    });
-
-    leftBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleInput('left', '1');
-    });
-
-    rightBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleInput('right', '1');
-    });
-
-    // Touch control handlers for Player 2
-    upBtn2.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleInput('up', '2');
-    });
-
-    downBtn2.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleInput('down', '2');
-    });
-
-    leftBtn2.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleInput('left', '2');
-    });
-
-    rightBtn2.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleInput('right', '2');
-    });
-
-    // Also handle click events for desktop testing
-    upBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleInput('up', '1');
-    });
-
-    downBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleInput('down', '1');
-    });
-
-    leftBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleInput('left', '1');
-    });
-
-    rightBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleInput('right', '1');
-    });
-
-    upBtn2.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleInput('up', '2');
-    });
-
-    downBtn2.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleInput('down', '2');
-    });
-
-    leftBtn2.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleInput('left', '2');
-    });
-
-    rightBtn2.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleInput('right', '2');
-    });
-
-    // Swipe gesture support
+// Set up virtual joystick touch handling
+function setupVirtualJoystick() {
+    // Touch start - establish the center point
     canvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        const touch = e.touches[0];
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
+
+        if (e.touches.length > 0) {
+            const touch = e.touches[0];
+            touchId = touch.identifier;
+            touchActive = true;
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            currentTouchX = touch.clientX;
+            currentTouchY = touch.clientY;
+            lastDirection = null;
+        }
     }, { passive: false });
 
-    canvas.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        const touch = e.changedTouches[0];
-        touchEndX = touch.clientX;
-        touchEndY = touch.clientY;
-        
-        handleSwipe();
-    }, { passive: false });
-
-    // Prevent default touch behaviors on game elements
+    // Touch move - detect direction changes
     canvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
+
+        if (!touchActive) return;
+
+        // Find the touch that matches our touchId
+        let currentTouch = null;
+        for (let i = 0; i < e.touches.length; i++) {
+            if (e.touches[i].identifier === touchId) {
+                currentTouch = e.touches[i];
+                break;
+            }
+        }
+
+        if (!currentTouch) return;
+
+        currentTouchX = currentTouch.clientX;
+        currentTouchY = currentTouch.clientY;
+
+        // Calculate the drag vector from start position
+        const deltaX = currentTouchX - touchStartX;
+        const deltaY = currentTouchY - touchStartY;
+
+        // Check if we've moved far enough to register a direction
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        if (distance < MIN_DRAG_DISTANCE) return;
+
+        // Determine the primary direction
+        let newDirection = null;
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            // Horizontal movement is stronger
+            newDirection = deltaX > 0 ? 'right' : 'left';
+        } else {
+            // Vertical movement is stronger
+            // Note: In screen coordinates, Y increases downward
+            newDirection = deltaY > 0 ? 'down' : 'up';
+        }
+
+        // Only send input if direction changed
+        if (newDirection !== lastDirection) {
+            lastDirection = newDirection;
+            handleInput(newDirection, '1');
+
+            // Update the start position to current position for continuous dragging
+            touchStartX = currentTouchX;
+            touchStartY = currentTouchY;
+        }
+    }, { passive: false });
+
+    // Touch end - reset the joystick
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+
+        // Check if our specific touch ended
+        let touchEnded = true;
+        for (let i = 0; i < e.touches.length; i++) {
+            if (e.touches[i].identifier === touchId) {
+                touchEnded = false;
+                break;
+            }
+        }
+
+        if (touchEnded) {
+            touchActive = false;
+            touchId = null;
+            lastDirection = null;
+        }
+    }, { passive: false });
+
+    // Touch cancel - reset the joystick
+    canvas.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        touchActive = false;
+        touchId = null;
+        lastDirection = null;
+    }, { passive: false });
+
+    // Prevent scrolling and other touch behaviors on the game area
+    document.body.addEventListener('touchmove', (e) => {
+        // Only prevent default if the touch is on the canvas or game container
+        if (e.target === canvas || canvas.contains(e.target)) {
+            e.preventDefault();
+        }
     }, { passive: false });
 }
 
-// Show/hide mobile controls based on device
+// Show/hide mobile controls based on device (for compatibility)
 function updateMobileControls() {
-    if (mobileControls) {
-        if (isMobileDevice()) {
-            mobileControls.style.display = 'flex';
-        } else {
-            mobileControls.style.display = 'none';
-        }
-    }
-}
-
-// Swipe gesture support
-let touchStartX = 0;
-let touchStartY = 0;
-let touchEndX = 0;
-let touchEndY = 0;
-
-function handleSwipe() {
-    const deltaX = touchEndX - touchStartX;
-    const deltaY = touchEndY - touchStartY;
-    const minSwipeDistance = 30;
-    
-    // Only process significant swipes
-    if (Math.abs(deltaX) < minSwipeDistance && Math.abs(deltaY) < minSwipeDistance) {
-        return;
-    }
-    
-    // Determine swipe direction
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        // Horizontal swipe
-        if (deltaX > 0) {
-            handleInput('right', '1');
-        } else {
-            handleInput('left', '1');
-        }
-    } else {
-        // Vertical swipe
-        if (deltaY > 0) {
-            handleInput('down', '1');
-        } else {
-            handleInput('up', '1');
-        }
-    }
+    // This function is kept for compatibility with existing code
+    // The virtual joystick doesn't need visible controls
 }
 
 // Handle orientation changes
 window.addEventListener('orientationchange', () => {
     setTimeout(() => {
-        updateMobileControls();
         // Trigger a resize to adjust canvas if needed
         const event = new Event('resize');
         window.dispatchEvent(event);
@@ -188,7 +155,7 @@ window.addEventListener('orientationchange', () => {
 
 // Handle window resize
 window.addEventListener('resize', () => {
-    updateMobileControls();
+    // No specific mobile control updates needed for virtual joystick
 });
 
 // Initialize mobile controls on load
