@@ -26,7 +26,7 @@ window.currentMode = null;
 
 // Leaderboard elements
 let highScoreModal, playerNameInput, saveScoreBtn, skipScoreBtn;
-let newHighScoreElement, leaderboardList, clearScoresBtn, leaderboardClose, showLeaderboardBtn;
+let newHighScoreElement, leaderboardList, leaderboardClose, showLeaderboardBtn;
 
 // Mode instances - will be initialized after DOM is ready
 let modes = {};
@@ -341,12 +341,7 @@ function hideLeaderboard() {
     leaderboard.classList.remove('show');
 }
 
-function clearHighScores() {
-    if (confirm('Are you sure you want to clear all high scores?')) {
-        localStorage.removeItem('wormGameScores');
-        updateLeaderboardDisplay();
-    }
-}
+
 
 // Check for high score when game ends
 function checkHighScore(score, mode) {
@@ -388,7 +383,6 @@ function initializeGame() {
     skipScoreBtn = document.getElementById('skipScoreBtn');
     newHighScoreElement = document.getElementById('newHighScore');
     leaderboardList = document.getElementById('leaderboardList');
-    clearScoresBtn = document.getElementById('clearScoresBtn');
     leaderboardClose = document.getElementById('leaderboardClose');
     showLeaderboardBtn = document.getElementById('showLeaderboard');
 
@@ -443,8 +437,6 @@ function initializeGame() {
     skipScoreBtn.addEventListener('click', () => {
         hideHighScoreModal();
     });
-
-    clearScoresBtn.addEventListener('click', clearHighScores);
 
     // Leaderboard close button
     leaderboardClose.addEventListener('click', hideLeaderboard);
